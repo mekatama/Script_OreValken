@@ -14,8 +14,12 @@ public class PlayerAnimation : MonoBehaviour{
 		velocity = new Vector3(0f,0f,Input.GetAxis("Horizontal"));
 		//ベクトルが0.1以上の場合判定
 		if(velocity.magnitude > 0.1){
+			//walk motion
 			animater.SetFloat("speed",velocity.magnitude);
+			//入力方向を向く
+			transform.LookAt(transform.position + velocity);
 		}else{
+			//idol motion
 			animater.SetFloat("speed",0f);
 		}
 	}
