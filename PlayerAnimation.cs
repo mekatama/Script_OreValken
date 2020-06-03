@@ -5,9 +5,11 @@ using UnityEngine;
 public class PlayerAnimation : MonoBehaviour{
 	private Vector3 velocity;	//判定用のベクトル入れる用
 	private Animator animater;	//Animater入れる用
+	private PlayerMove moveScript;	//PlayerMoveを参照
 
 	void Start(){
 		animater = GetComponent<Animator>();	//Animater取得
+		moveScript = GetComponentInParent<PlayerMove>();//上の階層のオブジェクトのPlayerMove.cs参照
 	}
 
     void Update(){
@@ -22,5 +24,15 @@ public class PlayerAnimation : MonoBehaviour{
 			//idol motion
 			animater.SetFloat("speed",0f);
 		}
+
+		//jump motion制御
+		if(moveScript.isGround == false){
+			//jump motion
+			animater.SetBool("jump",true);
+		}else{
+			//idol motion
+			animater.SetBool("jump",false);
+		}
+
 	}
 }
