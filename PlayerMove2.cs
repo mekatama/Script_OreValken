@@ -8,10 +8,11 @@ public class PlayerMove2 : MonoBehaviour{
 	private Vector3 input;				//移動用のベクトル入れる用
 	private Animator animater;			//Animater入れる用
 	public float speed = 15.0f;			//移動speed
+	public float jumpPower = 5.0f;		//jump力
 	public bool isGround;				//Rayでの接地flag
 	public bool isGroundCollider;		//Rayとレイヤー接触flag
 	public Transform charaRay;			//ray飛ばすオブジェクトの位置
-	private float charaRayRange = 0.1f;	//rayの長さ
+	private float charaRayRange = 0.15f;	//rayの長さ
 
 	void Start() {
 		rb = GetComponent<Rigidbody>();
@@ -33,15 +34,15 @@ public class PlayerMove2 : MonoBehaviour{
 				isGround = false;		//接地flag
 				rb.useGravity = false;	//重力off jump中は独自に重力的なものを発生させるため
 			}
+			Debug.DrawLine(charaRay.position,(charaRay.position - transform.up * charaRayRange),Color.red);
 		}
-		Debug.DrawLine(charaRay.position,(charaRay.position - transform.up * charaRayRange),Color.red);
 
 		//collisionが接地、またはrayが接地している場合
-		if(isGroundCollider == true || isGround == true){
+		if((isGroundCollider == true) || (isGround == true)){
 			//接地で初期化
 			if(isGroundCollider == true){
 				velocity = Vector3.zero;		//判定用ベクトル初期化
-//				animater.SetBool("jump",false);	//idol motionへ
+				animater.SetBool("jump",false);	//idol motionへ
 				rb.useGravity = true;			//重力on
 			//rayだけの接地では重力だけ残す。多分、そのまま落下させてcollision接地に持ち込むため
 			}else{
@@ -49,8 +50,9 @@ public class PlayerMove2 : MonoBehaviour{
 			}
 			input = new Vector3(0f,0f,Input.GetAxis("Horizontal"));
 
+			//左右移動
 			//ベクトルが0.1以上の場合判定
-			if(input.magnitude > 0.1){
+			if(input.magnitude > 0.1f){
 				//walk motion
 				animater.SetFloat("speed",input.magnitude);
 				//入力方向を向く
@@ -61,12 +63,19 @@ public class PlayerMove2 : MonoBehaviour{
 				//idol motion
 				animater.SetFloat("speed",0f);
 			}
+
+			//jump入力
+			if(Input.GetKeyDown(KeyCode.Space)){
+				animater.SetBool("jump",true);	//jump motion
+				velocity.y += jumpPower;		//上昇力
+				rb.useGravity = false;			//重力off
+			}
 		}
 
 		//完全に空中にいるとき
-		if(isGroundCollider == false && isGround == false){
+		if((isGroundCollider == false) && (isGround == false)){
 			//Rigidbodyに設定した重力の値を使用
-			velocity.y = Physics.gravity.y * Time.deltaTime;
+			velocity.y += Physics.gravity.y * Time.deltaTime;
 		}
 	}
 
