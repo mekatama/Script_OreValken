@@ -15,6 +15,8 @@ public class PlayerMove2 : MonoBehaviour{
 	private float charaRayRange = 0.15f;//rayの長さ
 	private float jumpCount = 0.0f;		//滞空判定用カウンター
 	private float jumpCountEnd = 0.2f;	//滞空開始
+	private float flyCount = 0.0f;		//滞空制限用カウンター
+	private float flyCountEnd = 1.0f;	//滞空制限時間
 
 	void Start() {
 		rb = GetComponent<Rigidbody>();
@@ -46,6 +48,7 @@ public class PlayerMove2 : MonoBehaviour{
 			if(isGroundCollider == true){
 				velocity = Vector3.zero;		//判定用ベクトル初期化
 				jumpCount = 0;					//滞空用カウンター初期化
+				flyCount = 0;					//滞空制限用カウンター
 				animater.SetBool("jump",false);	//idol motionへ
 				rb.useGravity = true;			//重力on
 			//rayだけの接地では重力だけ残す。多分、そのまま落下させてcollision接地に持ち込むため
@@ -85,33 +88,29 @@ public class PlayerMove2 : MonoBehaviour{
 			if(Input.GetKey(KeyCode.Space)){
 				//jump開始から一定カウント後
 				if(jumpCount >= jumpCountEnd){
-					//一度、上昇力を強制的に小さく
-					if(velocity.y > 0){
-						velocity.y = 0.5f;
+					//滞空制限判定
+					flyCount += Time.deltaTime;
+					//滞空開始から一定カウント内だけ滞空する
+					if(flyCount <= flyCountEnd){
+						//一度、上昇力を強制的に小さく
+						if(velocity.y > 0){
+							velocity.y = 0.5f;
+						}
+						Debug.Log("taikuu");
+	//					animater.SetBool("jump",true);	//jump motion
+						velocity.y += (jumpPower * 0.008f);		//上昇力
+						rb.useGravity = false;			//重力off
+					}else{
+						Debug.Log("fall");
+						//Rigidbodyに設定した重力の値を使用
+						velocity.y += Physics.gravity.y * Time.deltaTime;
 					}
-					Debug.Log("taikuu");
-//					animater.SetBool("jump",true);	//jump motion
-					velocity.y += (jumpPower * 0.008f);		//上昇力
-					rb.useGravity = false;			//重力off
 				}						
 			}else{
 				Debug.Log("fall");
 				//Rigidbodyに設定した重力の値を使用
 				velocity.y += Physics.gravity.y * Time.deltaTime;
 			}
-
-			//Rigidbodyに設定した重力の値を使用
-//			velocity.y += Physics.gravity.y * Time.deltaTime;
-/*
-			if(Input.GetKey(KeyCode.Space)){
-				animater.SetBool("jump",true);	//jump motion
-				velocity.y += (jumpPower * 0.01f);		//上昇力
-				rb.useGravity = false;			//重力off
-			}else{
-				//Rigidbodyに設定した重力の値を使用
-				velocity.y += Physics.gravity.y * Time.deltaTime;
-			}
-*/
 		}
 	}
 
