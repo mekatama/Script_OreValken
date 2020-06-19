@@ -12,7 +12,9 @@ public class PlayerMove2 : MonoBehaviour{
 	public bool isGround;				//Rayでの接地flag
 	public bool isGroundCollider;		//Rayとレイヤー接触flag
 	public Transform charaRay;			//ray飛ばすオブジェクトの位置
-	private float charaRayRange = 0.15f;	//rayの長さ
+	private float charaRayRange = 0.15f;//rayの長さ
+	private float jumpCount = 0.0f;		//滞空判定用カウンター
+	private float jumpCountEnd = 0.2f;	//滞空開始
 
 	void Start() {
 		rb = GetComponent<Rigidbody>();
@@ -24,6 +26,7 @@ public class PlayerMove2 : MonoBehaviour{
 	void Update(){
 //		Debug.Log("isGroundCollider:" + isGroundCollider);
 //		Debug.Log("isGround:" + isGround);
+//		Debug.Log("jumpCount:" + jumpCount);
 		//空中ではRay飛ばして判定
 		if(isGroundCollider == false){
 			//真下にcharaRayRange分ray飛ばして当たったらtrue
@@ -42,6 +45,7 @@ public class PlayerMove2 : MonoBehaviour{
 			//接地で初期化
 			if(isGroundCollider == true){
 				velocity = Vector3.zero;		//判定用ベクトル初期化
+				jumpCount = 0;					//滞空用カウンター初期化
 				animater.SetBool("jump",false);	//idol motionへ
 				rb.useGravity = true;			//重力on
 			//rayだけの接地では重力だけ残す。多分、そのまま落下させてcollision接地に持ち込むため
@@ -70,12 +74,44 @@ public class PlayerMove2 : MonoBehaviour{
 				velocity.y += jumpPower;		//上昇力
 				rb.useGravity = false;			//重力off
 			}
+
 		}
 
 		//完全に空中にいるとき
 		if((isGroundCollider == false) && (isGround == false)){
+			//滞空判定
+			jumpCount += Time.deltaTime;
+			//jumpおしっぱ判定
+			if(Input.GetKey(KeyCode.Space)){
+				//jump開始から一定カウント後
+				if(jumpCount >= jumpCountEnd){
+					//一度、上昇力を強制的に小さく
+					if(velocity.y > 0){
+						velocity.y = 0.5f;
+					}
+					Debug.Log("taikuu");
+//					animater.SetBool("jump",true);	//jump motion
+					velocity.y += (jumpPower * 0.008f);		//上昇力
+					rb.useGravity = false;			//重力off
+				}						
+			}else{
+				Debug.Log("fall");
+				//Rigidbodyに設定した重力の値を使用
+				velocity.y += Physics.gravity.y * Time.deltaTime;
+			}
+
 			//Rigidbodyに設定した重力の値を使用
-			velocity.y += Physics.gravity.y * Time.deltaTime;
+//			velocity.y += Physics.gravity.y * Time.deltaTime;
+/*
+			if(Input.GetKey(KeyCode.Space)){
+				animater.SetBool("jump",true);	//jump motion
+				velocity.y += (jumpPower * 0.01f);		//上昇力
+				rb.useGravity = false;			//重力off
+			}else{
+				//Rigidbodyに設定した重力の値を使用
+				velocity.y += Physics.gravity.y * Time.deltaTime;
+			}
+*/
 		}
 	}
 
